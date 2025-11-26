@@ -10,15 +10,29 @@ import { ExternalLink } from "lucide-react"
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function RevertsTracker() {
+    const designers = useQuery(api.designers.get);
     const qcItems = useQuery(api.designers.getQCItems);
     const reverts = useQuery(api.designers.getReverts);
 
+    // Calculate reverts per designer for the chart
+    const revertsPerDesigner = designers?.map(designer => ({
+        name: designer.name,
+        internalReverts: designer.internalReverts || 0,
+        externalReverts: designer.externalReverts || 0,
+        qcReverts: designer.qcReverts || 0,
+    })).sort((a, b) => {
+        const totalA = a.internalReverts + a.externalReverts + a.qcReverts;
+        const totalB = b.internalReverts + b.externalReverts + b.qcReverts;
+        return totalB - totalA; // Sort by total reverts descending
+    }) || [];
+
     // Sort reverts by timestamp (most recent first)
-    const recentReverts = reverts ? [...reverts].sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    ).slice(0, 10) : [];
+    const recentReverts = reverts?.slice().sort((a, b) => {
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    }).slice(0, 50); // Show top 50 most recent
 
     return (
         <div className="flex flex-col gap-6">
@@ -173,73 +187,107 @@ export default function RevertsTracker() {
                 </CardContent>
             </Card>
 
-            {/* Recent Reverts Section */}
-            <Card className="border-none shadow-sm">
-                <CardHeader>
-                    <CardTitle className="text-base font-semibold">Recent Reverts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="max-h-[600px] overflow-y-auto">
-                        <Table>
-                            <TableHeader className="sticky top-0 bg-white z-10">
-                                <TableRow>
-                                    <TableHead>Item Name</TableHead>
-                                    <TableHead>QC Stage</TableHead>
-                                    <TableHead>Reason</TableHead>
-                                    <TableHead>Assignee</TableHead>
-                                    <TableHead>Last Updated</TableHead>
-                                    <TableHead>Link</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {recentReverts?.map((item) => (
-                                    <TableRow key={item._id}>
-                                        <TableCell className="font-medium">{item.name}</TableCell>
-                                        <TableCell>
-                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.function === 'QC 1 - Copy' ? 'bg-purple-100 text-purple-800' :
-                                                item.function === 'QC 2 - Design' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-green-100 text-green-800'
-                                                }`}>
-                                                {item.function}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800">
-                                                {item.reason}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>{item.assignee}</TableCell>
-                                        <TableCell className="text-sm text-muted-foreground">
-                                            {new Date(item.timestamp).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell>
-                                            {item.url && (
-                                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                                                    View <ExternalLink size={12} />
-                                                </a>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {!reverts && (
+
+            {/* Recent Reverts Section with Chart */}
+            <div className="space-y-6">
+                {/* Reverts Per Designer Chart */}
+                <Card className="border-none shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-base font-semibold">Reverts Per Designer</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={revertsPerDesigner}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                        dataKey="name"
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={100}
+                                        interval={0}
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="internalReverts" fill="#ef4444" name="Internal Reverts" />
+                                    <Bar dataKey="externalReverts" fill="#f97316" name="External Reverts" />
+                                    <Bar dataKey="qcReverts" fill="#a855f7" name="QC Reverts" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Recent Reverts Table */}
+                <Card className="border-none shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-base font-semibold">Recent Reverts</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="max-h-[600px] overflow-y-auto">
+                            <Table>
+                                <TableHeader className="sticky top-0 bg-white z-10">
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            Loading reverts...
-                                        </TableCell>
+                                        <TableHead>Item Name</TableHead>
+                                        <TableHead>QC Stage</TableHead>
+                                        <TableHead>Reason</TableHead>
+                                        <TableHead>Assignee</TableHead>
+                                        <TableHead>Last Updated</TableHead>
+                                        <TableHead>Link</TableHead>
                                     </TableRow>
-                                )}
-                                {reverts && reverts.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            No recent reverts.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+                                </TableHeader>
+                                <TableBody>
+                                    {recentReverts?.map((item) => (
+                                        <TableRow key={item._id}>
+                                            <TableCell className="font-medium">{item.name}</TableCell>
+                                            <TableCell>
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.function === 'QC 1 - Copy' ? 'bg-purple-100 text-purple-800' :
+                                                    item.function === 'QC 2 - Design' ? 'bg-blue-100 text-blue-800' :
+                                                        'bg-green-100 text-green-800'
+                                                    }`}>
+                                                    {item.function}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800">
+                                                    {item.reason}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>{item.assignee}</TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">
+                                                {new Date(item.timestamp).toLocaleDateString()}
+                                            </TableCell>
+                                            <TableCell>
+                                                {item.url && (
+                                                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                                                        View <ExternalLink size={12} />
+                                                    </a>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {!reverts && (
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                Loading reverts...
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                    {reverts && reverts.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                No recent reverts.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }
