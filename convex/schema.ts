@@ -18,6 +18,7 @@ export default defineSchema({
         assignee: v.optional(v.string()),
         url: v.optional(v.string()),
         deadline: v.optional(v.string()), // Client deadline for sorting
+        lastUpdated: v.optional(v.string()), // Last updated timestamp
     }),
     reverts: defineTable({
         itemId: v.string(),

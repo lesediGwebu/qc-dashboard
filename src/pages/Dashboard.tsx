@@ -100,6 +100,7 @@ function Dashboard() {
                     <TableHead>Stage</TableHead>
                     <TableHead>Assignee</TableHead>
                     <TableHead>Deadline</TableHead>
+                    <TableHead>Last Updated</TableHead>
                     <TableHead>Link</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -127,6 +128,9 @@ function Dashboard() {
                           <span className="text-slate-400">No deadline</span>
                         )}
                       </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : 'N/A'}
+                      </TableCell>
                       <TableCell>
                         {item.url && (
                           <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
@@ -138,14 +142,14 @@ function Dashboard() {
                   ))}
                   {!qcItems && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Loading QC items...
                       </TableCell>
                     </TableRow>
                   )}
                   {qcItems && qcItems.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No QC items in review.
                       </TableCell>
                     </TableRow>

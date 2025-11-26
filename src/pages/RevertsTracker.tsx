@@ -107,6 +107,7 @@ export default function RevertsTracker() {
                                     <TableHead>Status</TableHead>
                                     <TableHead>Assignee</TableHead>
                                     <TableHead>Deadline</TableHead>
+                                    <TableHead>Last Updated</TableHead>
                                     <TableHead>Link</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -131,14 +132,17 @@ export default function RevertsTracker() {
                                         <TableCell className="text-sm">
                                             {item.deadline ? (
                                                 <span className={`${new Date(item.deadline) < new Date() ? 'text-red-600 font-semibold' :
-                                                        new Date(item.deadline).toDateString() === new Date().toDateString() ? 'text-amber-600 font-semibold' :
-                                                            'text-slate-600'
+                                                    new Date(item.deadline).toDateString() === new Date().toDateString() ? 'text-amber-600 font-semibold' :
+                                                        'text-slate-600'
                                                     }`}>
                                                     {new Date(item.deadline).toLocaleDateString()}
                                                 </span>
                                             ) : (
                                                 <span className="text-slate-400">No deadline</span>
                                             )}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : 'N/A'}
                                         </TableCell>
                                         <TableCell>
                                             {item.url && (
@@ -151,14 +155,14 @@ export default function RevertsTracker() {
                                 ))}
                                 {!qcItems && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             Loading QC items...
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 {qcItems && qcItems.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             No items currently in QC.
                                         </TableCell>
                                     </TableRow>
@@ -219,14 +223,14 @@ export default function RevertsTracker() {
                                 ))}
                                 {!reverts && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             Loading reverts...
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 {reverts && reverts.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             No recent reverts.
                                         </TableCell>
                                     </TableRow>

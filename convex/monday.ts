@@ -155,6 +155,12 @@ export const syncDesigners = action({
           }
 
           if (qcStatus === "In Review") {
+            // Get last updated timestamp
+            let lastUpdated = new Date().toISOString();
+            if (lastUpdatedCol?.text) {
+              lastUpdated = lastUpdatedCol.text;
+            }
+
             // Only include if designer is whitelisted
             if (!designerName || DESIGNER_WHITELIST.includes(designerName)) {
               qcItems.push({
@@ -163,8 +169,9 @@ export const syncDesigners = action({
                 function: name,
                 status: qcStatus,
                 assignee: designerName || "Unassigned",
-                url: `https://monday.com/boards/${boardId}/pulses/${subitem.id}`,
+                url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
                 deadline: deadline || undefined,
+                lastUpdated: lastUpdated,
               });
             }
           } else if (qcStatus === "Reverts") {
@@ -187,7 +194,7 @@ export const syncDesigners = action({
                 reason: "Reverts",
                 status: qcStatus,
                 assignee: designerName || "Unassigned",
-                url: `https://monday.com/boards/${boardId}/pulses/${subitem.id}`,
+                url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
                 timestamp,
               });
             }

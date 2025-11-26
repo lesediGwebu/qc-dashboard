@@ -86,6 +86,7 @@ export const updateQCItems = mutation({
                 assignee: v.optional(v.string()),
                 url: v.optional(v.string()),
                 deadline: v.optional(v.string()),
+                lastUpdated: v.optional(v.string()),
             })
         ),
     },
