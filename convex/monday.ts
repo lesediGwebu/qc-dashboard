@@ -133,72 +133,97 @@ export const syncDesigners = action({
           }
         }
 
-        // --- QC Items and Reverts Logic (REMOVED QC3) ---
-        const qcColumns = [
-          { col: qc1Col, name: "QC 1 - Copy" },
-          { col: qc2Col, name: "QC 2 - Design" }
-        ];
+        // --- QC Items and Reverts Logic ---
+        // Get deadline and last updated for this subitem
+        let deadline = null;
+        if (dateCol?.value) {
+          try {
+            const dateObj = JSON.parse(dateCol.value);
+            deadline = dateObj.date;
+          } catch (e) {
+            // ignore
+          }
+        }
 
-        qcColumns.forEach(({ col, name }) => {
-          const qcStatus = col?.text;
+        let lastUpdated = new Date().toISOString();
+        if (lastUpdatedCol?.text) {
+          lastUpdated = lastUpdatedCol.text;
+        }
 
-          // Get deadline for sorting
-          let deadline = null;
-          if (dateCol?.value) {
-            try {
-              const dateObj = JSON.parse(dateCol.value);
-              deadline = dateObj.date;
-            } catch (e) {
-              // ignore
-            }
+        // Check QC1 and QC2 status
+        const qc1Status = qc1Col?.text;
+        const qc2Status = qc2Col?.text;
+
+        // Only include if designer is whitelisted (or unassigned)
+        const isWhitelisted = !designerName || DESIGNER_WHITELIST.includes(designerName);
+
+        // Add QC1 if "In Review"
+        if (qc1Status === "In Review" && isWhitelisted) {
+          qcItems.push({
+            itemId: subitem.id,
+            name: subitem.name,
+            function: "QC 1 - Copy",
+            status: qc1Status,
+            assignee: designerName || "Unassigned",
+            url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
+            deadline: deadline || undefined,
+            lastUpdated: lastUpdated,
+          });
+        }
+
+        // Add QC2 if "In Review"
+        if (qc2Status === "In Review" && isWhitelisted) {
+          qcItems.push({
+            itemId: subitem.id,
+            name: subitem.name,
+            function: "QC 2 - Design",
+            status: qc2Status,
+            assignee: designerName || "Unassigned",
+            url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
+            deadline: deadline || undefined,
+            lastUpdated: lastUpdated,
+          });
+        }
+
+        // Handle QC1 Reverts
+        if (qc1Status === "Reverts") {
+          if (designerName && DESIGNER_WHITELIST.includes(designerName) && designerStats[designerName]) {
+            designerStats[designerName].qcReverts++;
           }
 
-          if (qcStatus === "In Review") {
-            // Get last updated timestamp
-            let lastUpdated = new Date().toISOString();
-            if (lastUpdatedCol?.text) {
-              lastUpdated = lastUpdatedCol.text;
-            }
-
-            // Only include if designer is whitelisted
-            if (!designerName || DESIGNER_WHITELIST.includes(designerName)) {
-              qcItems.push({
-                itemId: subitem.id,
-                name: subitem.name,
-                function: name,
-                status: qcStatus,
-                assignee: designerName || "Unassigned",
-                url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
-                deadline: deadline || undefined,
-                lastUpdated: lastUpdated,
-              });
-            }
-          } else if (qcStatus === "Reverts") {
-            // Count QC reverts for the designer (only if whitelisted)
-            if (designerName && DESIGNER_WHITELIST.includes(designerName) && designerStats[designerName]) {
-              designerStats[designerName].qcReverts++;
-            }
-
-            let timestamp = new Date().toISOString();
-            if (lastUpdatedCol?.text) {
-              timestamp = lastUpdatedCol.text;
-            }
-
-            // Only include if designer is whitelisted
-            if (!designerName || DESIGNER_WHITELIST.includes(designerName)) {
-              reverts.push({
-                itemId: subitem.id,
-                name: subitem.name,
-                function: name,
-                reason: "Reverts",
-                status: qcStatus,
-                assignee: designerName || "Unassigned",
-                url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
-                timestamp,
-              });
-            }
+          if (isWhitelisted) {
+            reverts.push({
+              itemId: subitem.id,
+              name: subitem.name,
+              function: "QC 1 - Copy",
+              reason: "Reverts",
+              status: qc1Status,
+              assignee: designerName || "Unassigned",
+              url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
+              timestamp: lastUpdated,
+            });
           }
-        });
+        }
+
+        // Handle QC2 Reverts
+        if (qc2Status === "Reverts") {
+          if (designerName && DESIGNER_WHITELIST.includes(designerName) && designerStats[designerName]) {
+            designerStats[designerName].qcReverts++;
+          }
+
+          if (isWhitelisted) {
+            reverts.push({
+              itemId: subitem.id,
+              name: subitem.name,
+              function: "QC 2 - Design",
+              reason: "Reverts",
+              status: qc2Status,
+              assignee: designerName || "Unassigned",
+              url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
+              timestamp: lastUpdated,
+            });
+          }
+        }
       });
     });
 
