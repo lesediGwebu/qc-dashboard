@@ -157,27 +157,26 @@ export const syncDesigners = action({
         // Only include if designer is whitelisted (or unassigned)
         const isWhitelisted = !designerName || DESIGNER_WHITELIST.includes(designerName);
 
-        // Add QC1 if "In Review"
-        if (qc1Status === "In Review" && isWhitelisted) {
-          qcItems.push({
-            itemId: subitem.id,
-            name: subitem.name,
-            function: "QC 1 - Copy",
-            status: qc1Status,
-            assignee: designerName || "Unassigned",
-            url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
-            deadline: deadline || undefined,
-            lastUpdated: lastUpdated,
-          });
-        }
+        // Determine which QC stages are in review
+        const qc1InReview = qc1Status === "In Review";
+        const qc2InReview = qc2Status === "In Review";
 
-        // Add QC2 if "In Review"
-        if (qc2Status === "In Review" && isWhitelisted) {
+        // If either QC1 or QC2 is in review, create a single entry
+        if ((qc1InReview || qc2InReview) && isWhitelisted) {
+          let qcStage = "";
+          if (qc1InReview && qc2InReview) {
+            qcStage = "QC 1 - Copy and QC 2 - Design";
+          } else if (qc1InReview) {
+            qcStage = "QC 1 - Copy";
+          } else {
+            qcStage = "QC 2 - Design";
+          }
+
           qcItems.push({
             itemId: subitem.id,
             name: subitem.name,
-            function: "QC 2 - Design",
-            status: qc2Status,
+            function: qcStage,
+            status: "In Review",
             assignee: designerName || "Unassigned",
             url: `https://zo-adv.monday.com/boards/${boardId}/pulses/${subitem.id}`,
             deadline: deadline || undefined,
