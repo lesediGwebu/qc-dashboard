@@ -13,7 +13,7 @@ export default function Layout() {
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col fixed h-full">
                 <div className="p-6 flex items-center gap-3">
-                    <div className="text-2xl font-bold text-blue-600">Sherbet</div>
+                    <img src="/Sherbet Blue Logo(1).jpg" alt="Sherbet Logo" className="h-10 w-auto" />
                 </div>
 
                 <nav className="flex-1 px-4 py-4 space-y-1">

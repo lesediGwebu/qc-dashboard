@@ -98,59 +98,74 @@ export default function RevertsTracker() {
                     <CardTitle className="text-base font-semibold">Upcoming QC Items</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Item Name</TableHead>
-                                <TableHead>QC Stage</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Assignee</TableHead>
-                                <TableHead>Link</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {qcItems?.map((item) => (
-                                <TableRow key={item._id}>
-                                    <TableCell className="font-medium">{item.name}</TableCell>
-                                    <TableCell>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.function === 'QC 1 - Copy' ? 'bg-purple-100 text-purple-800' :
+                    <div className="max-h-[600px] overflow-y-auto">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-white z-10">
+                                <TableRow>
+                                    <TableHead>Item Name</TableHead>
+                                    <TableHead>QC Stage</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Assignee</TableHead>
+                                    <TableHead>Deadline</TableHead>
+                                    <TableHead>Link</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {qcItems?.map((item) => (
+                                    <TableRow key={item._id}>
+                                        <TableCell className="font-medium">{item.name}</TableCell>
+                                        <TableCell>
+                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.function === 'QC 1 - Copy' ? 'bg-purple-100 text-purple-800' :
                                                 item.function === 'QC 2 - Design' ? 'bg-blue-100 text-blue-800' :
                                                     'bg-green-100 text-green-800'
-                                            }`}>
-                                            {item.function}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
-                                            {item.status}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>{item.assignee}</TableCell>
-                                    <TableCell>
-                                        {item.url && (
-                                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                                                View <ExternalLink size={12} />
-                                            </a>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {!qcItems && (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                        Loading QC items...
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                            {qcItems && qcItems.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                        No items currently in QC.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                                }`}>
+                                                {item.function}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
+                                                {item.status}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>{item.assignee}</TableCell>
+                                        <TableCell className="text-sm">
+                                            {item.deadline ? (
+                                                <span className={`${new Date(item.deadline) < new Date() ? 'text-red-600 font-semibold' :
+                                                        new Date(item.deadline).toDateString() === new Date().toDateString() ? 'text-amber-600 font-semibold' :
+                                                            'text-slate-600'
+                                                    }`}>
+                                                    {new Date(item.deadline).toLocaleDateString()}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400">No deadline</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {item.url && (
+                                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                                                    View <ExternalLink size={12} />
+                                                </a>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {!qcItems && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            Loading QC items...
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {qcItems && qcItems.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            No items currently in QC.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -160,63 +175,65 @@ export default function RevertsTracker() {
                     <CardTitle className="text-base font-semibold">Recent Reverts</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Item Name</TableHead>
-                                <TableHead>QC Stage</TableHead>
-                                <TableHead>Reason</TableHead>
-                                <TableHead>Assignee</TableHead>
-                                <TableHead>Last Updated</TableHead>
-                                <TableHead>Link</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recentReverts?.map((item) => (
-                                <TableRow key={item._id}>
-                                    <TableCell className="font-medium">{item.name}</TableCell>
-                                    <TableCell>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.function === 'QC 1 - Copy' ? 'bg-purple-100 text-purple-800' :
+                    <div className="max-h-[600px] overflow-y-auto">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-white z-10">
+                                <TableRow>
+                                    <TableHead>Item Name</TableHead>
+                                    <TableHead>QC Stage</TableHead>
+                                    <TableHead>Reason</TableHead>
+                                    <TableHead>Assignee</TableHead>
+                                    <TableHead>Last Updated</TableHead>
+                                    <TableHead>Link</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {recentReverts?.map((item) => (
+                                    <TableRow key={item._id}>
+                                        <TableCell className="font-medium">{item.name}</TableCell>
+                                        <TableCell>
+                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.function === 'QC 1 - Copy' ? 'bg-purple-100 text-purple-800' :
                                                 item.function === 'QC 2 - Design' ? 'bg-blue-100 text-blue-800' :
                                                     'bg-green-100 text-green-800'
-                                            }`}>
-                                            {item.function}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800">
-                                            {item.reason}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>{item.assignee}</TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {new Date(item.timestamp).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        {item.url && (
-                                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                                                View <ExternalLink size={12} />
-                                            </a>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {!reverts && (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                        Loading reverts...
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                            {reverts && reverts.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                        No recent reverts.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                                }`}>
+                                                {item.function}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800">
+                                                {item.reason}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>{item.assignee}</TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {new Date(item.timestamp).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell>
+                                            {item.url && (
+                                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                                                    View <ExternalLink size={12} />
+                                                </a>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {!reverts && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            Loading reverts...
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {reverts && reverts.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            No recent reverts.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

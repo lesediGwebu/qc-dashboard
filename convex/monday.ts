@@ -13,6 +13,21 @@ export const syncDesigners = action({
       throw new Error("Missing MONDAY_API_TOKEN or MONDAY_BOARD_ID");
     }
 
+    // Whitelist of designers to include (exclude everyone else)
+    const DESIGNER_WHITELIST = [
+      "Boitumelo Molefe",
+      "Cayla Rynders",
+      "Celimpilo Ngwenya",
+      "Christine Chivers",
+      "Ipeleng",
+      "Itumeleng Lerata",
+      "Lethabo Leshabana",
+      "Matthew Ndlovu",
+      "Nkanyezi",
+      "Racheal Kazembe",
+      "Tshepo Makhoro"
+    ];
+
     // Fetch items and their subitems with specific columns including QC columns
     const query = `
       query {
@@ -23,7 +38,7 @@ export const syncDesigners = action({
               subitems {
                 id
                 name
-                column_values(ids: ["people", "date_mkxx6zcr", "status1", "color_mkpw7gdr", "color_mkwzfjx8", "color_mkx4wfdz", "color_mkx4rwcm", "last_updated__1"]) {
+                column_values(ids: ["people", "date_mkxx6zcr", "status1", "color_mkpw7gdr", "color_mkwzfjx8", "color_mkx4wfdz", "last_updated__1"]) {
                   id
                   text
                   value
@@ -71,13 +86,12 @@ export const syncDesigners = action({
         const functionCol = subitem.column_values.find((c: any) => c.id === "color_mkpw7gdr");
         const qc1Col = subitem.column_values.find((c: any) => c.id === "color_mkwzfjx8");
         const qc2Col = subitem.column_values.find((c: any) => c.id === "color_mkx4wfdz");
-        const qc3Col = subitem.column_values.find((c: any) => c.id === "color_mkx4rwcm");
         const lastUpdatedCol = subitem.column_values.find((c: any) => c.id === "last_updated__1");
 
         const designerName = peopleCol?.text;
 
-        // --- Designer Stats Logic ---
-        if (designerName) {
+        // --- Designer Stats Logic (ONLY for whitelisted designers) ---
+        if (designerName && DESIGNER_WHITELIST.includes(designerName)) {
           if (!designerStats[designerName]) {
             designerStats[designerName] = {
               missedDeadlines: 0,
@@ -120,28 +134,42 @@ export const syncDesigners = action({
           }
         }
 
-        // --- QC Items and Reverts Logic ---
+        // --- QC Items and Reverts Logic (REMOVED QC3) ---
         const qcColumns = [
           { col: qc1Col, name: "QC 1 - Copy" },
-          { col: qc2Col, name: "QC 2 - Design" },
-          { col: qc3Col, name: "QC 3 - CS" }
+          { col: qc2Col, name: "QC 2 - Design" }
         ];
 
         qcColumns.forEach(({ col, name }) => {
           const qcStatus = col?.text;
 
+          // Get deadline for sorting
+          let deadline = null;
+          if (dateCol?.value) {
+            try {
+              const dateObj = JSON.parse(dateCol.value);
+              deadline = dateObj.date;
+            } catch (e) {
+              // ignore
+            }
+          }
+
           if (qcStatus === "In Review") {
-            qcItems.push({
-              itemId: subitem.id,
-              name: subitem.name,
-              function: name,
-              status: qcStatus,
-              assignee: designerName || "Unassigned",
-              url: `https://monday.com/boards/${boardId}/pulses/${subitem.id}`,
-            });
+            // Only include if designer is whitelisted
+            if (!designerName || DESIGNER_WHITELIST.includes(designerName)) {
+              qcItems.push({
+                itemId: subitem.id,
+                name: subitem.name,
+                function: name,
+                status: qcStatus,
+                assignee: designerName || "Unassigned",
+                url: `https://monday.com/boards/${boardId}/pulses/${subitem.id}`,
+                deadline: deadline || undefined,
+              });
+            }
           } else if (qcStatus === "Reverts") {
-            // Count QC reverts for the designer
-            if (designerName && designerStats[designerName]) {
+            // Count QC reverts for the designer (only if whitelisted)
+            if (designerName && DESIGNER_WHITELIST.includes(designerName) && designerStats[designerName]) {
               designerStats[designerName].qcReverts++;
             }
 
@@ -150,16 +178,19 @@ export const syncDesigners = action({
               timestamp = lastUpdatedCol.text;
             }
 
-            reverts.push({
-              itemId: subitem.id,
-              name: subitem.name,
-              function: name,
-              reason: "Reverts",
-              status: qcStatus,
-              assignee: designerName || "Unassigned",
-              url: `https://monday.com/boards/${boardId}/pulses/${subitem.id}`,
-              timestamp,
-            });
+            // Only include if designer is whitelisted
+            if (!designerName || DESIGNER_WHITELIST.includes(designerName)) {
+              reverts.push({
+                itemId: subitem.id,
+                name: subitem.name,
+                function: name,
+                reason: "Reverts",
+                status: qcStatus,
+                assignee: designerName || "Unassigned",
+                url: `https://monday.com/boards/${boardId}/pulses/${subitem.id}`,
+                timestamp,
+              });
+            }
           }
         });
       });

@@ -64,7 +64,14 @@ export const updateDesigners = mutation({
 export const getQCItems = query({
     args: {},
     handler: async (ctx) => {
-        return await ctx.db.query("qcItems").collect();
+        const items = await ctx.db.query("qcItems").collect();
+        // Sort by deadline (earliest first), items without deadline go to end
+        return items.sort((a, b) => {
+            if (!a.deadline && !b.deadline) return 0;
+            if (!a.deadline) return 1;
+            if (!b.deadline) return -1;
+            return a.deadline.localeCompare(b.deadline);
+        });
     },
 });
 
@@ -78,6 +85,7 @@ export const updateQCItems = mutation({
                 status: v.string(),
                 assignee: v.optional(v.string()),
                 url: v.optional(v.string()),
+                deadline: v.optional(v.string()),
             })
         ),
     },
