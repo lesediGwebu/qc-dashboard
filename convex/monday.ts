@@ -1,7 +1,6 @@
 "use node";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
-import { v } from "convex/values";
 
 export const syncDesigners = action({
   args: {},
@@ -83,7 +82,7 @@ export const syncDesigners = action({
         const peopleCol = subitem.column_values.find((c: any) => c.id === "people");
         const dateCol = subitem.column_values.find((c: any) => c.id === "date_mkxx6zcr");
         const statusCol = subitem.column_values.find((c: any) => c.id === "status1");
-        const functionCol = subitem.column_values.find((c: any) => c.id === "color_mkpw7gdr");
+
         const qc1Col = subitem.column_values.find((c: any) => c.id === "color_mkwzfjx8");
         const qc2Col = subitem.column_values.find((c: any) => c.id === "color_mkx4wfdz");
         const lastUpdatedCol = subitem.column_values.find((c: any) => c.id === "last_updated__1");
@@ -223,7 +222,7 @@ export const syncDesigners = action({
 
 export const inspectSubitemBoard = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async () => {
     const apiKey = process.env.MONDAY_API_TOKEN;
     const boardId = process.env.MONDAY_BOARD_ID;
 

@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom"
-import { LayoutDashboard, RotateCcw, Settings, HelpCircle, Activity } from "lucide-react"
+import { LayoutDashboard, RotateCcw, Settings, HelpCircle } from "lucide-react"
 
 export default function Layout() {
     const location = useLocation()

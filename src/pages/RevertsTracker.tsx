@@ -6,7 +6,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ArrowUp, ArrowDown, ExternalLink } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
